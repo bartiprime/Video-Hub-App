@@ -7,19 +7,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable Long Paths
+      - name: Enable Long Paths (Windows Fix)
         run: git config --global core.longpaths true
-
-      - name: Install Windows Build Tools
-        run: npm install -g windows-build-tools
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.18.0
+          node-version: 20.18.0  # Use the exact version required by Electron
 
       - name: Install Dependencies
-        run: npm ci --legacy-peer-deps --force
+        run: |
+          npm ci --legacy-peer-deps --force
+          # Explicitly install Electron if needed
+          npm install electron@25.9.0 --save-dev --force
 
       - name: Download FFmpeg
         run: |
@@ -27,17 +27,11 @@ jobs:
           mkdir -p resources
           mv ffmpeg.exe resources/
 
-      - name: Create Release Directory
-        run: mkdir release
-
       - name: Build for Windows
         run: npx electron-builder build --win --x64
-
-      - name: Debug Output
-        run: dir release\  # Verify files exist
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Video-Hub-App-Windows
-          path: ./release/*
+          path: ./release/*.exe
