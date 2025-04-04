@@ -1,26 +1,35 @@
-name: Build Video Hub App
-on: [push]  # Triggers on any push to the repo
+name: Build Video Hub App for Windows
+on: [push]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # Uses a Linux virtual machine
+  build-windows:
+    runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Enable Long Paths
+        run: git config --global core.longpaths true
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20.18.0  # Matches Electron's Node.js version
+          node-version: 20.18.0
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps  # Fixes dependency conflicts
+        run: |
+          npm install --global windows-build-tools
+          npm install --legacy-peer-deps --force
 
-      - name: Build the app
-        run: npm run electron  # Executes the build script
+      - name: Download FFmpeg
+        run: |
+          curl -L https://github.com/whyboris/Video-Hub-App/releases/download/v3.0.0/ffmpeg.exe -o ffmpeg.exe
+          mkdir -p resources
+          mv ffmpeg.exe resources/
 
-      - name: Upload build artifacts
+      - name: Build for Windows
+        run: npm run electron -- --win
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Video-Hub-App-Build
-          path: ./release/  # Folder where builds are saved
+          name: Video-Hub-App-Windows
+          path: ./release/*.exe
