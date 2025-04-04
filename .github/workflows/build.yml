@@ -5,24 +5,35 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4  # Use v4 here too
+      - uses: actions/checkout@v4
+
+      - name: Enable Long Paths (Windows Fix)
+        run: git config --system core.longpaths true
+
+      - name: Install Windows Build Tools
+        run: |
+          npm install -g windows-build-tools
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.18.0
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps --force
+      - name: Install Dependencies
+        run: |
+          npm ci --legacy-peer-deps --force
+
+      - name: Download FFmpeg
+        run: |
+          curl -L https://github.com/whyboris/Video-Hub-App/releases/download/v3.0.0/ffmpeg.exe -o ffmpeg.exe
+          mkdir -p resources
+          mv ffmpeg.exe resources/
 
       - name: Build for Windows
-        run: npm run electron -- --win
+        run: npm run electron -- --win --x64  # Explicitly target 64-bit Windows
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4  # Update from v3 to v4
+        uses: actions/upload-artifact@v4
         with:
           name: Video-Hub-App-Windows
-          path: |
-            ./release/*.exe
-            ./release/*.exe.blockmap  # Include all build files
+          path: ./release/*.exe
