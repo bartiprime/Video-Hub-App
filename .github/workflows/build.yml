@@ -1,0 +1,26 @@
+name: Build Video Hub App
+on: [push]  # Triggers on any push to the repo
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Uses a Linux virtual machine
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.0  # Matches Electron's Node.js version
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps  # Fixes dependency conflicts
+
+      - name: Build the app
+        run: npm run electron  # Executes the build script
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Video-Hub-App-Build
+          path: ./release/  # Folder where builds are saved
