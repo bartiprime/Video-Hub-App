@@ -7,33 +7,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable Long Paths (Windows Fix)
-        run: git config --system core.longpaths true
+      - name: Enable Long Paths
+        run: git config --global core.longpaths true
 
       - name: Install Windows Build Tools
         run: |
-          npm install -g windows-build-tools
+          # Install Visual Studio Build Tools and Python
+          npm install -g windows-build-tools --vs2015
+          echo "Build tools installed"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.18.0
 
-      - name: Install Dependencies
+      - name: Install Dependencies (Verbose)
         run: |
           npm ci --legacy-peer-deps --force
+          npm list --depth=0  # List installed dependencies
 
-      - name: Download FFmpeg
+      - name: Download FFmpeg (Verify Path)
         run: |
           curl -L https://github.com/whyboris/Video-Hub-App/releases/download/v3.0.0/ffmpeg.exe -o ffmpeg.exe
           mkdir -p resources
           mv ffmpeg.exe resources/
+          dir resources\  # Verify FFmpeg is in the correct folder
 
-      - name: Build for Windows
-        run: npm run electron -- --win --x64  # Explicitly target 64-bit Windows
+      - name: Build for Windows (Debug Mode)
+        run: |
+          npm config set electron_build_binaries_mirror https://npmmirror.com/mirrors/electron/
+          npm run electron -- --win --x64 --debug
+          dir release\  # Check if build files exist
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
+        if: success() || failure()  # Upload artifacts even if build fails
         with:
           name: Video-Hub-App-Windows
-          path: ./release/*.exe
+          path: ./release/
