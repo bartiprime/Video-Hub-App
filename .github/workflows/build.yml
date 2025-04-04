@@ -25,10 +25,10 @@ jobs:
           mv ffmpeg.exe resources/
 
       - name: Build Source Code
-        run: npm run build  # Critical step to generate main.js
+        run: npm run build  # Ensure this step generates main.js
 
       - name: Build Windows Executable
-        run: npx electron-builder build --win --x64
+        run: npx electron-builder build --win --x64 --publish never  # Critical fix
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
